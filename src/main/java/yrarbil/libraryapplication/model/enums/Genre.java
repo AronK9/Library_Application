@@ -1,0 +1,32 @@
+package yrarbil.libraryapplication.model.enums;
+
+public enum Genre {
+    FANTASY,
+    SCIENCE_FICTION,
+    DYSTOPIAN,
+    ADVENTURE,
+    MYSTERY,
+    HORROR,
+    THRILLER,
+    HISTORICAL_FICTION,
+    ROMANCE,
+    CONTEMPORARY_FICTION,
+    MAGICAL_REALISM,
+    GRAPHIC_NOVEL,
+    YOUNG_ADULT,
+    CHILDREN,
+    AUTOBIOGRAPHY,
+    BIOGRAPHY,
+    FOOD_DRINK,
+    ART,
+    SELF_HELP,
+    HISTORY,
+    TRAVEL,
+    CRIME,
+    HUMOR,
+    GUIDE,
+    RELIGION_SPIRITUALITY,
+    SOCIAL_SCIENCES,
+    PARENTING,
+    SCIENCE_TECHNOLOGY
+}
