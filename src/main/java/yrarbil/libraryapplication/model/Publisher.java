@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import lombok.*;
-import yrarbil.libraryapplication.model.Book;
 
 import java.util.List;
 

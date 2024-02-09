@@ -1,14 +1,11 @@
 package yrarbil.libraryapplication.model;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
 import yrarbil.libraryapplication.model.enums.BookStatus;
 import yrarbil.libraryapplication.model.enums.Format;
 import yrarbil.libraryapplication.model.enums.Genre;
 
-import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -24,18 +21,18 @@ public class Book {
     @Column(name = "book_id", nullable = false)
     private Long bookId;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @ManyToOne
     @JoinColumn(name = "publisher_id", nullable = false)
     @ToString.Exclude
-    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "publisherId")
     private Publisher publisher;
 
 
     private String title;
 
-    @ManyToMany(mappedBy = "listOfBooks", fetch = FetchType.EAGER)
+    @ManyToOne
+    @JoinColumn(name = "author_id")
     @ToString.Exclude
-    private List<Author> authors;
+    private Author author;
 
     private Genre genre;
 
