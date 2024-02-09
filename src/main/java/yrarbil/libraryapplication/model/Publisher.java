@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.List;
+import java.util.Objects;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -23,7 +24,7 @@ public class Publisher {
 
     private String name;
 
-    @OneToMany(mappedBy = "publisher", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "publisher")
     @ToString.Exclude
     @JsonBackReference
     private List<Book> publishedBooks;
@@ -32,5 +33,23 @@ public class Publisher {
 
     private String website;
 
+    public Publisher(String name, List<Book> publishedBooks, String address, String website) {
+        this.name = name;
+        this.publishedBooks = publishedBooks;
+        this.address = address;
+        this.website = website;
+    }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Publisher publisher = (Publisher) o;
+        return Objects.equals(getPublisherId(), publisher.getPublisherId()) && Objects.equals(getName(), publisher.getName()) && Objects.equals(getPublishedBooks(), publisher.getPublishedBooks()) && Objects.equals(getAddress(), publisher.getAddress()) && Objects.equals(getWebsite(), publisher.getWebsite());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getPublisherId(), getName(), getPublishedBooks(), getAddress(), getWebsite());
+    }
 }

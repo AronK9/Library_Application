@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -27,8 +28,27 @@ public class Author {
 
     private String biography;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "author", cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "author")
     @ToString.Exclude
     private List<Book> listOfBooks;
 
+    public Author(String name, LocalDate dateOfBirth, String biography, List<Book> listOfBooks) {
+        this.name = name;
+        this.dateOfBirth = dateOfBirth;
+        this.biography = biography;
+        this.listOfBooks = listOfBooks;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Author author = (Author) o;
+        return Objects.equals(getAuthorId(), author.getAuthorId()) && Objects.equals(getName(), author.getName()) && Objects.equals(getDateOfBirth(), author.getDateOfBirth()) && Objects.equals(getBiography(), author.getBiography()) && Objects.equals(getListOfBooks(), author.getListOfBooks());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getAuthorId(), getName(), getDateOfBirth(), getBiography(), getListOfBooks());
+    }
 }
