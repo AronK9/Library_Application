@@ -4,7 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import yrarbil.libraryapplication.model.Loan;
+import yrarbil.libraryapplication.model.Patron;
 import yrarbil.libraryapplication.repository.LoanRepository;
+import yrarbil.libraryapplication.repository.PatronRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,10 +15,12 @@ import java.util.Optional;
 public class LoanService {
 
     private final LoanRepository loanRepository;
+    private final PatronRepository patronRepository;
 
     @Autowired
-    public LoanService(LoanRepository loanRepository) {
+    public LoanService(LoanRepository loanRepository, PatronRepository patronRepository) {
         this.loanRepository = loanRepository;
+        this.patronRepository = patronRepository;
     }
 
     public List<Loan> getAllLoans() {
@@ -27,8 +31,9 @@ public class LoanService {
         return loanRepository.findById(id);
     }
 
-    @Transactional
     public Loan save(Loan loan) {
+        Patron patron = patronRepository.findById(loan.getPatron().getPatronId()).orElseThrow(() -> new RuntimeException("Patron not found"));
+        loan.setPatron(patron);
         return loanRepository.save(loan);
     }
 

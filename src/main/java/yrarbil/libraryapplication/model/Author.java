@@ -1,5 +1,7 @@
 package yrarbil.libraryapplication.model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -14,6 +16,7 @@ import java.util.Objects;
 @ToString
 @Entity
 @Table(name = "author")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "authorId")
 public class Author {
 
     @Id

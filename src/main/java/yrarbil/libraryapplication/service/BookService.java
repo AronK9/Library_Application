@@ -51,6 +51,9 @@ public class BookService {
             book.setNumberOfPages(updatedBook.getNumberOfPages());
             book.setBookStatus(updatedBook.getBookStatus());
 
+            Book savedBook = bookRepository.save(book);
+            return Optional.of(savedBook);
+
         }
         return Optional.empty();
     }

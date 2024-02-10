@@ -1,6 +1,8 @@
 package yrarbil.libraryapplication.model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -14,12 +16,13 @@ import java.util.Objects;
 @ToString
 @Entity
 @Table(name = "patron")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "patronId")
 public class Patron {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "patron_id", nullable = false)
-    private Long PatronId;
+    private Long patronId;
 
     private String username;
 
@@ -31,7 +34,6 @@ public class Patron {
 
     @OneToMany(mappedBy = "patron", fetch = FetchType.LAZY)
     @ToString.Exclude
-    @JsonManagedReference
     private List<Loan> loanHistory;
 
     public Patron(String username, String password, String name, int age, List<Loan> loanHistory) {
