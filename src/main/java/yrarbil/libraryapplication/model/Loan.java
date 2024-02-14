@@ -1,6 +1,5 @@
 package yrarbil.libraryapplication.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
@@ -42,7 +41,7 @@ public class Loan {
     @Enumerated(EnumType.STRING)
     private LoanStatus loanStatus;
 
-    public Loan(Patron patron, LocalDate loanDate, LocalDate requiredReturnDate, LocalDate actualReturnDate, LoanStatus loanStatus) {
+    public Loan(Patron patron, LocalDate loanDate, LocalDate requiredReturnDate, @Nullable LocalDate actualReturnDate, LoanStatus loanStatus) {
         this.patron = patron;
         this.loanDate = loanDate;
         this.requiredReturnDate = requiredReturnDate;

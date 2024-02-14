@@ -2,7 +2,6 @@ package yrarbil.libraryapplication.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import yrarbil.libraryapplication.model.Loan;
 import yrarbil.libraryapplication.model.Patron;
 import yrarbil.libraryapplication.repository.LoanRepository;
