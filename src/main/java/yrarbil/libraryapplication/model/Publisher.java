@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 
 import lombok.*;
 
+import jakarta.validation.constraints.*;
 import java.util.List;
 import java.util.Objects;
 
@@ -25,6 +26,7 @@ public class Publisher {
     @Column(name = "publisher_id", nullable = false)
     private Long publisherId;
 
+    @NotNull
     private String name;
 
     @OneToMany(mappedBy = "publisher")

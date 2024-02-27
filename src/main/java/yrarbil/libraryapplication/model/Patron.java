@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
 
+import jakarta.validation.constraints.*;
 import java.util.List;
 import java.util.Objects;
 
@@ -23,10 +24,13 @@ public class Patron {
     @Column(name = "patron_id", nullable = false)
     private Long patronId;
 
+    @NotNull
     private String username;
 
+    @NotNull
     private String password;
 
+    @NotNull
     private String name;
 
     private int age;

@@ -3,10 +3,12 @@ package yrarbil.libraryapplication.model;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.*;
 import yrarbil.libraryapplication.model.enums.BookStatus;
 import yrarbil.libraryapplication.model.enums.Format;
 import yrarbil.libraryapplication.model.enums.Genre;
+
 
 import java.util.Objects;
 
@@ -29,26 +31,33 @@ public class Book {
     @ManyToOne
     @JoinColumn(name = "publisher_id", nullable = false)
     @ToString.Exclude
+    @NotNull
     private Publisher publisher;
 
-
+    @NotNull
+    @NotBlank
     private String title;
 
     @ManyToOne
     @JoinColumn(name = "author_id")
     @ToString.Exclude
+    @NotNull
     private Author author;
 
     @Enumerated(EnumType.STRING)
+    @NotNull
     private Genre genre;
 
     @Enumerated(EnumType.STRING)
+    @NotNull
     private Format format;
 
     @Column(name = "number_of_pages")
+    @NotNull
     private int numberOfPages;
 
     @Enumerated(EnumType.STRING)
+    @NotNull
     private BookStatus bookStatus;
 
     public Book(Publisher publisher, String title, Author author, Genre genre, Format format, int numberOfPages, BookStatus bookStatus) {

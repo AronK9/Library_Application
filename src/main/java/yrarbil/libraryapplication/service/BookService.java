@@ -1,5 +1,6 @@
 package yrarbil.libraryapplication.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +34,11 @@ public class BookService {
     }
 
     public void delete(Long id) {
-        bookRepository.deleteById(id);
+        if(bookRepository.existsById(id)) {
+            bookRepository.deleteById(id);
+        } else {
+            throw new EntityNotFoundException("Book with id " + id + " does not exist!");
+        }
     }
 
     public Optional<Book> updateById(Long id, Book updatedBook) {

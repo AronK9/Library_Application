@@ -1,5 +1,6 @@
 package yrarbil.libraryapplication.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +34,11 @@ public class PatronService {
     }
 
     public void delete(Long id) {
-        patronRepository.deleteById(id);
+        if(patronRepository.existsById(id)) {
+            patronRepository.deleteById(id);
+        } else {
+            throw new EntityNotFoundException("Patron with id " + id + " does not exist!");
+        }
     }
 
     public Optional <Patron> updateById (Long id, Patron updatedPatron) {

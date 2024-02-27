@@ -1,8 +1,10 @@
 package yrarbil.libraryapplication.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import yrarbil.libraryapplication.model.Author;
 import yrarbil.libraryapplication.repository.AuthorRepository;
 
@@ -33,7 +35,11 @@ public class AuthorService {
     }
 
     public void delete(Long id) {
-        authorRepository.deleteById(id);
+        if(authorRepository.existsById(id)) {
+            authorRepository.deleteById(id);
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Author with id " + id + " does not exist!");
+        }
     }
 
     public Optional<Author> updateById(Long id, Author updatedAuthor) {

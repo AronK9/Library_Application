@@ -1,5 +1,6 @@
 package yrarbil.libraryapplication.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import yrarbil.libraryapplication.model.Loan;
@@ -37,7 +38,11 @@ public class LoanService {
     }
 
     public void delete(Long id) {
-        loanRepository.deleteById(id);
+        if(loanRepository.existsById(id)) {
+            loanRepository.deleteById(id);
+        } else {
+            throw new EntityNotFoundException("Loan with id " + id + " does not exist!");
+        }
     }
 
     public Optional<Loan> updateById(Long id, Loan updatedLoan) {

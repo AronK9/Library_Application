@@ -7,6 +7,7 @@ import lombok.*;
 import org.springframework.lang.Nullable;
 import yrarbil.libraryapplication.model.enums.LoanStatus;
 
+import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 import java.util.Objects;
 
@@ -29,16 +30,20 @@ public class Loan {
     @ManyToOne
     @JoinColumn(name = "patron_id", nullable = false)
     @ToString.Exclude
+    @NotNull
     private Patron patron;
 
+    @NotNull
     private LocalDate loanDate;
 
+    @NotNull
     private LocalDate requiredReturnDate;
 
     @Nullable
     private LocalDate actualReturnDate;
 
     @Enumerated(EnumType.STRING)
+    @NotNull
     private LoanStatus loanStatus;
 
     public Loan(Patron patron, LocalDate loanDate, LocalDate requiredReturnDate, @Nullable LocalDate actualReturnDate, LoanStatus loanStatus) {

@@ -3,6 +3,8 @@ package yrarbil.libraryapplication.model;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -24,9 +26,13 @@ public class Author {
     @Column(name = "author_id", nullable = false)
     private Long authorId;
 
+
+    @NotEmpty
+    @NotNull
     private String name;
 
     @Column(name = "date_of_birth")
+    @NotNull
     private LocalDate dateOfBirth;
 
     private String biography;
