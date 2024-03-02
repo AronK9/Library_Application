@@ -30,6 +30,8 @@ public class PatronService {
 
     @Transactional
     public Patron save(Patron patron) {
+        if (patron == null)
+            throw new IllegalArgumentException("Patron cannot be null");
         return patronRepository.save(patron);
     }
 
@@ -49,7 +51,6 @@ public class PatronService {
             Patron patron = optionalPatron.get();
 
             patron.setUsername(updatedPatron.getUsername());
-            patron.setPassword(updatedPatron.getPassword());
             patron.setName(updatedPatron.getName());
             patron.setAge(updatedPatron.getAge());
             patron.setLoanHistory(updatedPatron.getLoanHistory());

@@ -40,4 +40,14 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(jakarta.persistence.EntityNotFoundException.class)
+    public ResponseEntity<Object> handleEntityNotFoundException(jakarta.persistence.EntityNotFoundException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.NOT_FOUND);
+        body.put("error", "Entity not found");
+
+        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+    }
 }

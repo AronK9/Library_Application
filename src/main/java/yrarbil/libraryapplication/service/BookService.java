@@ -30,11 +30,15 @@ public class BookService {
 
     @Transactional
     public Book save(Book book) {
+
+        if (book == null)
+            throw new IllegalArgumentException("Book can not be null");
         return bookRepository.save(book);
+
     }
 
     public void delete(Long id) {
-        if(bookRepository.existsById(id)) {
+        if (bookRepository.existsById(id)) {
             bookRepository.deleteById(id);
         } else {
             throw new EntityNotFoundException("Book with id " + id + " does not exist!");

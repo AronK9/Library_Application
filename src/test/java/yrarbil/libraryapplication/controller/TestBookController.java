@@ -1,6 +1,8 @@
 package yrarbil.libraryapplication.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,7 +11,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -32,11 +36,11 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @ExtendWith(MockitoExtension.class)
 public class TestBookController {
@@ -46,7 +50,6 @@ public class TestBookController {
 
     @InjectMocks
     private BookController bookController;
-
     private MockMvc mockMvc;
 
     private ObjectMapper objectMapper;
@@ -54,20 +57,23 @@ public class TestBookController {
     @BeforeEach
     public void setup() {
         objectMapper = new ObjectMapper();
-        mockMvc = MockMvcBuilders.standaloneSetup(bookController).build();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        mockMvc = MockMvcBuilders.standaloneSetup(bookController).
+                setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper)).build();
     }
 
     @Test
     public void testGetAllBooks() throws Exception {
-        Book book1 = new Book( new Publisher("publisher1", new ArrayList<>(), "address", "website"),
-                "title", new Author("name", LocalDate.parse("1994-10-10"), "bio", new ArrayList<>()),
-                Genre.ART, Format.HARDCOVER, 110, BookStatus.BORROWED
-                );
 
-        Book book2 = new Book( new Publisher("publisher2", new ArrayList<>(), "address2", "website2"),
-                "title", new Author("name2", LocalDate.parse("1994-06-10"), "bio", new ArrayList<>()),
-                Genre.CRIME, Format.DIGITAL, 170, BookStatus.AVAILABLE
-        );
+        Publisher publisher1 = new Publisher(1L, "publisher1", new ArrayList<>(), "address", "website");
+
+        Author author1 = new Author(1L, "name", LocalDate.now(), "bio", new ArrayList<>());
+
+        Book book1 = new Book(publisher1, "book1", author1, Genre.DYSTOPIAN, Format.PAPERBACK, 300, BookStatus.AVAILABLE);
+
+        Book book2 = new Book(publisher1, "book2", author1, Genre.MYSTERY, Format.HARDCOVER, 400, BookStatus.BORROWED);
+
 
         List<Book> bookList = Arrays.asList(book1, book2);
 
@@ -76,23 +82,42 @@ public class TestBookController {
         mockMvc.perform(MockMvcRequestBuilders.get("/book"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$",  Matchers.hasSize(2)));
+                .andExpect(MockMvcResultMatchers.jsonPath("$", Matchers.hasSize(2)))
+                .andExpect(jsonPath("$.[*].publisher.publisherId", Matchers.everyItem(Matchers.is(1))))
+                .andExpect(jsonPath("$.[*].title", Matchers.contains(book1.getTitle(), book2.getTitle())))
+                .andExpect(jsonPath("$.[*].author.authorId", Matchers.everyItem(Matchers.is(1))))
+                .andExpect(jsonPath("$.[*].genre", Matchers.contains(book1.getGenre().toString(), book2.getGenre().toString())))
+                .andExpect(jsonPath("$.[*].format", Matchers.contains(book1.getFormat().toString(), book2.getFormat().toString())))
+                .andExpect(jsonPath("$.[*].numberOfPages", Matchers.contains(book1.getNumberOfPages(), book2.getNumberOfPages())))
+                .andExpect(jsonPath("$.[*].bookStatus", Matchers.contains(book1.getBookStatus().toString(), book2.getBookStatus().toString())));
     }
 
     @Test
     public void testGetBookById() throws Exception {
-        Book book = new Book();
+        Publisher publisher1 = new Publisher(1L, "publisher1", new ArrayList<>(), "address", "website");
+
+        Author author1 = new Author(1L, "name", LocalDate.now(), "bio", new ArrayList<>());
+
+        Book book = new Book(publisher1, "book1", author1, Genre.DYSTOPIAN, Format.PAPERBACK, 300, BookStatus.AVAILABLE);
         when(bookService.getBookById(1L)).thenReturn(Optional.of(book));
 
         mockMvc.perform(get("/book/1")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(book)));
+                .andExpect(content().json(objectMapper.writeValueAsString(book)))
+                .andExpect(jsonPath("$.publisher.publisherId", Matchers.is(1)))
+                .andExpect(jsonPath("$.title", Matchers.is(book.getTitle())))
+                .andExpect(jsonPath("$.author.authorId", Matchers.is(1)))
+                .andExpect(jsonPath("$.genre", Matchers.is(book.getGenre().toString())))
+                .andExpect(jsonPath("$.format", Matchers.is(book.getFormat().toString())))
+                .andExpect(jsonPath("$.numberOfPages", Matchers.is(book.getNumberOfPages())))
+                .andExpect(jsonPath("$.bookStatus", Matchers.is(book.getBookStatus().toString())));
+
     }
 
     @Test
-    public void testGetBookByNonExistentId () throws Exception {
-        when (bookService.getBookById(anyLong()))
+    public void testGetBookByNonExistentId() throws Exception {
+        when(bookService.getBookById(anyLong()))
                 .thenReturn(Optional.empty());
 
         mockMvc.perform(get("/book/1")
@@ -102,14 +127,10 @@ public class TestBookController {
 
     @Test
     public void testAddBook() throws Exception {
-        Book book = new Book();
-        book.setPublisher(new Publisher());
-        book.setTitle("title");
-        book.setAuthor(new Author());
-        book.setGenre(Genre.BIOGRAPHY);
-        book.setFormat(Format.HARDCOVER);
-        book.setNumberOfPages(200);
-        book.setBookStatus(BookStatus.AVAILABLE);
+        Publisher publisher1 = new Publisher(1L, "publisher1", new ArrayList<>(), "address", "website");
+        Author author1 = new Author(2L, "name", LocalDate.now(), "bio", new ArrayList<>());
+        Book book = new Book(publisher1, "book1", author1, Genre.DYSTOPIAN, Format.PAPERBACK, 300, BookStatus.AVAILABLE);
+
 
         when(bookService.save(any(Book.class))).thenReturn(book);
 
@@ -117,7 +138,14 @@ public class TestBookController {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(book)))
                 .andExpect(status().isCreated())
-                .andExpect(content().json(objectMapper.writeValueAsString(book)));
+                .andExpect(content().json(objectMapper.writeValueAsString(book)))
+                .andExpect(jsonPath("$.publisher.publisherId", Matchers.is(1)))
+                .andExpect(jsonPath("$.title", Matchers.is(book.getTitle())))
+                .andExpect(jsonPath("$.author.authorId", Matchers.is(2)))
+                .andExpect(jsonPath("$.genre", Matchers.is(book.getGenre().toString())))
+                .andExpect(jsonPath("$.format", Matchers.is(book.getFormat().toString())))
+                .andExpect(jsonPath("$.numberOfPages", Matchers.is(book.getNumberOfPages())))
+                .andExpect(jsonPath("$.bookStatus", Matchers.is(book.getBookStatus().toString())));
     }
 
     @Test
@@ -129,6 +157,54 @@ public class TestBookController {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidBook)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testDeleteBook() throws Exception {
+        mockMvc.perform(delete("/book/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void testDeleteNonExistentBook() throws Exception {
+        doThrow(new EmptyResultDataAccessException(1)).when(bookService).delete(anyLong());
+
+        mockMvc.perform(delete("/book/1000")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testUpdateBook() throws Exception {
+        Book book = new Book(new Publisher(), "title", new Author(), Genre.BIOGRAPHY, Format.PAPERBACK, 646, BookStatus.IN_REPAIR);
+
+        when(bookService.updateById(1L, book)).thenReturn(Optional.of(book));
+
+        mockMvc.perform(put("/book/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(book)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(book)))
+                .andExpect(jsonPath("$.title", Matchers.is(book.getTitle())))
+                .andExpect(jsonPath("$.genre", Matchers.is(book.getGenre().toString())))
+                .andExpect(jsonPath("$.format", Matchers.is(book.getFormat().toString())))
+                .andExpect(jsonPath("$.numberOfPages", Matchers.is(book.getNumberOfPages())))
+                .andExpect(jsonPath("$.bookStatus", Matchers.is(book.getBookStatus().toString())));
+    }
+
+    @Test
+    public void testUpdateNonExistentAuthor() throws Exception {
+        Book book = new Book(new Publisher(), "title", new Author(), Genre.BIOGRAPHY, Format.PAPERBACK, 646, BookStatus.IN_REPAIR);
+
+        when(bookService.updateById(anyLong(), any(Book.class)))
+                .thenReturn(Optional.empty());
+
+        mockMvc.perform(put("/book/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(book)))
+                .andExpect(status().isNotFound());
+
     }
 
 }

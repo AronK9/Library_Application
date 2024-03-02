@@ -1,6 +1,8 @@
 package yrarbil.libraryapplication.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -42,20 +44,24 @@ public class PatronController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Patron> addPatron(@RequestBody Patron patron) {
+    public ResponseEntity<Patron> addPatron(@Valid @RequestBody Patron patron) {
 
         Patron createdPatron = patronService.save(patron);
         return new ResponseEntity<>(createdPatron, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePatron (@PathVariable Long id) {
-        patronService.delete(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<Void> deletePatron (@Valid @PathVariable Long id) {
+        try {
+            patronService.delete(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (EmptyResultDataAccessException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Patron> updatePatron (@RequestBody Patron newPatron, @PathVariable Long id) {
+    public ResponseEntity<Patron> updatePatron (@Valid @RequestBody Patron newPatron, @PathVariable Long id) {
         Optional<Patron> updatedPatron = patronService.updateById(id, newPatron);
 
         if (updatedPatron.isPresent()) {

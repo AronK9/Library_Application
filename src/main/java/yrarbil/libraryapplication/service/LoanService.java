@@ -32,17 +32,21 @@ public class LoanService {
     }
 
     public Loan save(Loan loan) {
-        Patron patron = patronRepository.findById(loan.getPatron().getPatronId()).orElseThrow(() -> new RuntimeException("Patron not found"));
-        loan.setPatron(patron);
-        return loanRepository.save(loan);
+        {
+            if (loan == null) {
+                throw new IllegalArgumentException("Loan cannot be null");
+            }
+            Patron patron = patronRepository.findById(loan.getPatron().getPatronId()).orElseThrow(() -> new RuntimeException("Patron not found"));
+            loan.setPatron(patron);
+            return loanRepository.save(loan);
+        }
     }
 
     public void delete(Long id) {
-        if(loanRepository.existsById(id)) {
-            loanRepository.deleteById(id);
-        } else {
-            throw new EntityNotFoundException("Loan with id " + id + " does not exist!");
-        }
+
+        Loan loan = loanRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Loan with id " + id + " does not exist!"));
+        loanRepository.deleteById(id);
     }
 
     public Optional<Loan> updateById(Long id, Loan updatedLoan) {

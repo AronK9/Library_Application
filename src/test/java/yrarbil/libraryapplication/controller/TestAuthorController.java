@@ -2,6 +2,7 @@ package yrarbil.libraryapplication.controller;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -9,12 +10,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.Answer;
+import org.mockito.Mockito;import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -33,8 +32,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -51,13 +49,16 @@ public class TestAuthorController {
     public void setup() {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        mockMvc = MockMvcBuilders.standaloneSetup(authorController).build();
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        mockMvc = MockMvcBuilders.standaloneSetup(authorController).
+                setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper)).build();
     }
 
     @Test
     public void testGetAllAuthors() throws Exception {
-        Author author1 = new Author("author1", LocalDate.parse("1994-12-23"), "bio1", new ArrayList<>());
 
+
+        Author author1 = new Author("author1", LocalDate.parse("1994-12-23"), "bio1", new ArrayList<>());
         Author author2 = new Author("author2", LocalDate.parse("1994-12-24"), "bio2", new ArrayList<>());
 
         List<Author> authorsList = Arrays.asList(author1, author2);
@@ -67,7 +68,15 @@ public class TestAuthorController {
         mockMvc.perform(MockMvcRequestBuilders.get("/author"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$", Matchers.hasSize(2)));
+                .andExpect(jsonPath("$", Matchers.hasSize(2)))
+                .andExpect(jsonPath("$[0].name", Matchers.is(author1.getName())))
+                .andExpect(jsonPath("$[0].dateOfBirth", Matchers.is(author1.getDateOfBirth().toString())))
+                .andExpect(jsonPath("$[0].biography", Matchers.is(author1.getBiography())))
+                .andExpect(jsonPath("$[0].listOfBooks", Matchers.is(author1.getListOfBooks())))
+                .andExpect(jsonPath("$[1].name", Matchers.is(author2.getName())))
+                .andExpect(jsonPath("$[1].dateOfBirth", Matchers.is(author2.getDateOfBirth().toString())))
+                .andExpect(jsonPath("$[1].biography", Matchers.is(author2.getBiography())))
+                .andExpect(jsonPath("$[1].listOfBooks", Matchers.is(author2.getListOfBooks())));
 
     }
 
@@ -79,16 +88,20 @@ public class TestAuthorController {
         mockMvc.perform(get("/author/1")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(author)));
+                .andExpect(content().json(objectMapper.writeValueAsString(author)))
+                .andExpect(jsonPath("$.name", Matchers.is(author.getName())))
+                .andExpect(jsonPath("$.biography", Matchers.is(author.getBiography())))
+                .andExpect(jsonPath("$.listOfBooks", Matchers.is(author.getListOfBooks())))
+        ;
     }
 
     @Test
-    public void testGetAuthorByNonExistentId () throws Exception {
-        when (authorService.getAuthorById(anyLong()))
+    public void testGetAuthorByNonExistentId() throws Exception {
+        when(authorService.getAuthorById(anyLong()))
                 .thenReturn(Optional.empty());
 
         mockMvc.perform(get("/author/1")
-                .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
 
@@ -104,7 +117,11 @@ public class TestAuthorController {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(author)))
                 .andExpect(status().isCreated())
-                .andExpect(content().json(objectMapper.writeValueAsString(author)));
+                .andExpect(content().json(objectMapper.writeValueAsString(author)))
+                .andExpect(jsonPath("$.name", Matchers.is(author.getName())))
+                .andExpect(jsonPath("$.biography", Matchers.is(author.getBiography())))
+                .andExpect(jsonPath("$.listOfBooks", Matchers.is(author.getListOfBooks())))
+                .andExpect(jsonPath("$.dateOfBirth", Matchers.is(author.getDateOfBirth().toString())));
     }
 
     @Test
@@ -113,8 +130,8 @@ public class TestAuthorController {
         invalidAuthor.setName("");
 
         mockMvc.perform(post("/author")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(invalidAuthor)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidAuthor)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -130,7 +147,7 @@ public class TestAuthorController {
         doThrow(new EmptyResultDataAccessException(1)).when(authorService).delete(anyLong());
 
         mockMvc.perform(delete("/author/1000")
-                .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
 
@@ -144,7 +161,11 @@ public class TestAuthorController {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(author)))
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(author)));
+                .andExpect(content().json(objectMapper.writeValueAsString(author)))
+                .andExpect(jsonPath("$.name", Matchers.is(author.getName())))
+                .andExpect(jsonPath("$.biography", Matchers.is(author.getBiography())))
+                .andExpect(jsonPath("$.listOfBooks", Matchers.is(author.getListOfBooks())))
+                .andExpect(jsonPath("$.dateOfBirth", Matchers.is(author.getDateOfBirth().toString())));
     }
 
     @Test
@@ -155,10 +176,9 @@ public class TestAuthorController {
                 .thenReturn(Optional.empty());
 
         mockMvc.perform(put("/author/1")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(author)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(author)))
                 .andExpect(status().isNotFound());
-
     }
 }
 

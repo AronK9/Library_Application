@@ -2,17 +2,14 @@ package yrarbil.libraryapplication.controller;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import yrarbil.libraryapplication.model.Book;
 import yrarbil.libraryapplication.service.BookService;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -53,9 +50,13 @@ public class BookController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBook (@PathVariable Long id) {
-        bookService.delete(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<Void> deleteBook (@Valid @PathVariable Long id) {
+        try {
+            bookService.delete(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (EmptyResultDataAccessException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @PutMapping("/{id}")

@@ -1,5 +1,7 @@
 package yrarbil.libraryapplication.controller;
 
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,20 +44,24 @@ public class PublisherController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Publisher> addPublisher(@RequestBody Publisher publisher) {
+    public ResponseEntity<Publisher> addPublisher(@Valid @RequestBody Publisher publisher) {
 
         Publisher createdPublisher = publisherService.save(publisher);
         return new ResponseEntity<>(createdPublisher, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePublisher (@PathVariable Long id) {
-        publisherService.delete(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<Void> deletePublisher (@Valid @PathVariable Long id) {
+        try {
+            publisherService.delete(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Publisher> updatePublisher(@RequestBody Publisher newPublisher, @PathVariable Long id) {
+    public ResponseEntity<Publisher> updatePublisher(@Valid @RequestBody Publisher newPublisher, @PathVariable Long id) {
         Optional<Publisher> updatedPublisher = publisherService.updateById(id, newPublisher);
 
         if (updatedPublisher.isPresent()) {

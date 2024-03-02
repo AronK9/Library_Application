@@ -1,11 +1,15 @@
 package yrarbil.libraryapplication;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
+import org.springframework.context.annotation.Configuration;
 import yrarbil.libraryapplication.model.*;
 import yrarbil.libraryapplication.model.enums.BookStatus;
 import yrarbil.libraryapplication.model.enums.Format;
@@ -52,14 +56,23 @@ public class LibraryApplication {
             Book book1 = new Book(publisher1, "title", author1, Genre.BIOGRAPHY, Format.DIGITAL, 220, BookStatus.BORROWED);
             bookService.save(book1);
 
-            Patron patron1 = new Patron("username", "pw", "name", 22, new ArrayList<>());
+            Patron patron1 = new Patron("username", "name", 22, new ArrayList<>());
             patronService.save(patron1);
 
             Loan loan1 = new Loan(patron1, LocalDate.now(), LocalDate.now().plusDays(30), null, LoanStatus.ACTIVE);
             loanService.save(loan1);
-
-
-
         };
     }
+
+    @Configuration
+    public static class JacksonConfig {
+        @Bean
+        public ObjectMapper objectMapper() {
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+            return objectMapper;
+        }
+    }
 }
+

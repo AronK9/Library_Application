@@ -1,5 +1,7 @@
 package yrarbil.libraryapplication.controller;
 
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,20 +45,25 @@ public class LoanController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Loan> addBook(@RequestBody Loan loan) {
+    public ResponseEntity<Loan> addBook(@Valid @RequestBody Loan loan) {
 
         Loan createdLoan = loanService.save(loan);
         return new ResponseEntity<>(createdLoan, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteLoan (@PathVariable Long id) {
-        loanService.delete(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<Void> deleteLoan (@Valid @PathVariable Long id) {
+
+        try {
+            loanService.delete(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Loan> updateLoan (@RequestBody Loan newLoan, @PathVariable Long id) {
+    public ResponseEntity<Loan> updateLoan (@Valid @RequestBody Loan newLoan, @PathVariable Long id) {
         Optional<Loan> updatedLoan = loanService.updateById(id, newLoan);
 
         if (updatedLoan.isPresent()) {

@@ -31,6 +31,8 @@ public class PublisherService {
 
     @Transactional
     public Publisher save(Publisher publisher) {
+        if (publisher == null)
+            throw new IllegalArgumentException("Author cannot be null");
         return publisherRepository.save(publisher);
     }
 
